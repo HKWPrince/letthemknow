@@ -12,6 +12,7 @@ import io.letthemknow.integration.ApiKeyRateLimitFilter;
 import io.letthemknow.integration.IntegrationProperties;
 import io.letthemknow.tenant.UserRole;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -84,10 +85,19 @@ class SecurityConfig {
                 .build();
     }
 
+    /**
+     * Browsers send {@code Origin} on every POST, including same-origin ones. Behind the tunnel and
+     * nginx the API sees an internal host, so that Origin never looks same-origin to Spring and the
+     * request is rejected with "Invalid CORS request" unless the public origin is listed here.
+     *
+     * <p>That is not a signup detail: it rejected login too, and every other write the console makes.
+     * Defaults cover local dev; production passes its real hostnames in {@code LTK_CORS_ORIGINS}.
+     */
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${ltk.security.cors-origins:http://localhost:*,http://127.0.0.1:*}") List<String> allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

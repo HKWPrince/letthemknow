@@ -76,6 +76,8 @@ services:
       # Values in .env are only interpolated into this file; they do not reach the container unless
       # they are listed here. Empty is the safe default: it leaves self-service signup disabled.
       LTK_SIGNUP_CODE: ${LTK_SIGNUP_CODE:-}
+      # Public origins the console is served from. Without these every browser POST is refused.
+      LTK_CORS_ORIGINS: ${LTK_CORS_ORIGINS:-http://localhost:*,http://127.0.0.1:*}
       TZ: UTC
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/health || exit 1"]

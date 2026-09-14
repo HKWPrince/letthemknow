@@ -256,6 +256,11 @@ APP_WORKER_ENABLED=true
 # Shared code for self-service signup at /signup. EMPTY means signup is disabled, never open.
 LTK_SIGNUP_CODE=
 
+# The console's public origin. Browsers attach Origin to every POST, and behind the tunnel the API
+# never sees its own hostname, so without this every login and signup from a browser is refused with
+# "Invalid CORS request" — while curl, which sends no Origin, keeps working and hides the problem.
+LTK_CORS_ORIGINS=https://letthemknow.hkwprince.com
+
 CLOUDFLARE_TUNNEL_TOKEN=
 EOF
 

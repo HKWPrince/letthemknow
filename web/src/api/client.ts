@@ -51,7 +51,14 @@ async function request<T>(path: string, init: RequestInit, isForm = false): Prom
     unauthorizedHandler();
   }
   if (!response.ok) {
-    throw new ApiError(body?.code ?? response.status, body?.message ?? response.statusText);
+    // A non-JSON failure (a proxy error page, a rejected CORS request) leaves body undefined, and
+    // HTTP/2 has no status text, so falling back to statusText yields "". The UI then renders an
+    // empty error and the button looks like it did nothing. Always end up with something readable.
+    const message =
+      body?.message?.trim() ||
+      response.statusText?.trim() ||
+      `Request failed (HTTP ${response.status})`;
+    throw new ApiError(body?.code ?? response.status, message);
   }
   if (!body) {
     throw new ApiError(response.status, "Empty response body");

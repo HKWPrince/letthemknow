@@ -72,6 +72,9 @@ ltk:
     jwt-ttl: 12h
     # Shared code for self-service tenant creation. Unset means signup is DISABLED, not open.
     signup-code: ${LTK_SIGNUP_CODE:}
+    # Origins the console is served from. Browsers attach Origin to every POST, so the public hostname
+    # must be listed or every write from the browser is refused with "Invalid CORS request".
+    cors-origins: ${LTK_CORS_ORIGINS:http://localhost:*,http://127.0.0.1:*}
   worker:
     enabled: ${APP_WORKER_ENABLED:true}
   integration:
