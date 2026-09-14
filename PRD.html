@@ -1,0 +1,810 @@
+<title>LetThemKnow 產品需求文件</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+  :root {
+    --paper:      #FAFBFA;
+    --surface:    #FFFFFF;
+    --ink:        #14201C;
+    --ink-soft:   #3D4B45;
+    --muted:      #5C6B65;
+    --rule:       #DFE5E2;
+    --rule-soft:  #EDF1EF;
+    --accent:     #006B57;
+    --accent-bg:  #E6F2EE;
+    --ok:         #1F7A4D;
+    --ok-bg:      #E4F3EA;
+    --warn:       #8A5D00;
+    --warn-bg:    #FAF0DC;
+    --crit:       #A3312B;
+    --crit-bg:    #FAE9E7;
+    --shadow:     0 1px 2px rgba(20,32,28,.06), 0 8px 24px -16px rgba(20,32,28,.25);
+
+    --sans:  "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    --serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+    --mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #101614;
+      --surface:   #171F1C;
+      --ink:       #E8EDEA;
+      --ink-soft:  #BAC6C1;
+      --muted:     #93A29C;
+      --rule:      #2A3531;
+      --rule-soft: #212B27;
+      --accent:    #56C9AC;
+      --accent-bg: #16302A;
+      --ok:        #6FCB94;
+      --ok-bg:     #15301F;
+      --warn:      #D8AC5A;
+      --warn-bg:   #332813;
+      --crit:      #E88A83;
+      --crit-bg:   #341A18;
+      --shadow:    0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #101614;
+    --surface:   #171F1C;
+    --ink:       #E8EDEA;
+    --ink-soft:  #BAC6C1;
+    --muted:     #93A29C;
+    --rule:      #2A3531;
+    --rule-soft: #212B27;
+    --accent:    #56C9AC;
+    --accent-bg: #16302A;
+    --ok:        #6FCB94;
+    --ok-bg:     #15301F;
+    --warn:      #D8AC5A;
+    --warn-bg:   #332813;
+    --crit:      #E88A83;
+    --crit-bg:   #341A18;
+    --shadow:    0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+    display: grid;
+    grid-template-columns: 216px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    grid-column: 1 / -1;
+    border-bottom: 2px solid var(--ink);
+    padding: 56px 0 24px;
+    margin-bottom: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 40px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(30px, 4.4vw, 44px);
+    line-height: 1.25;
+    letter-spacing: .01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .masthead .sub {
+    color: var(--muted);
+    font-size: 14.5px;
+    margin: 10px 0 0;
+    max-width: 46ch;
+  }
+  .stamp {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 2;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .stamp b { color: var(--ink); font-weight: 500; }
+
+  /* ---------- index ---------- */
+  .index {
+    position: sticky;
+    top: 28px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .index h2 {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+    font-weight: 500;
+  }
+  .index ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  .index a {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 4px 8px 4px 0;
+    border-radius: 3px;
+  }
+  .index a:hover { color: var(--accent); }
+  .index a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .index .n { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+  /* ---------- sections ---------- */
+  main { min-width: 0; max-width: var(--measure); }
+
+  section { margin-bottom: 60px; scroll-margin-top: 24px; }
+
+  section > h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 1.4;
+    margin: 0 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: baseline;
+    text-wrap: balance;
+  }
+  section > h2 .n {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 16.5px;
+    margin: 32px 0 8px;
+    color: var(--ink);
+  }
+  h3:first-of-type { margin-top: 22px; }
+
+  p { margin: 0 0 14px; color: var(--ink-soft); }
+  main > section > p:first-of-type { color: var(--ink); }
+
+  strong { color: var(--ink); font-weight: 700; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .87em;
+    background: var(--rule-soft);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .1em .38em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  ul { margin: 0 0 14px; padding-left: 1.15em; color: var(--ink-soft); }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--muted); }
+
+  /* ---------- summary callout ---------- */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+  .summary p:last-child { margin-bottom: 0; }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 20px 0 24px;
+  }
+  .facts div { background: var(--surface); padding: 14px 16px; }
+  .facts dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .facts dd {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+  }
+  .facts dd small { display: block; font-size: 12.5px; font-weight: 400; color: var(--muted); }
+
+  /* ---------- tables ---------- */
+  .tw { overflow-x: auto; margin: 0 0 20px; border: 1px solid var(--rule); border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; background: var(--surface); }
+  th, td { text-align: left; padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    background: var(--rule-soft);
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td:first-child { color: var(--ink); font-weight: 500; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- status chips ---------- */
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .04em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .chip.ok   { background: var(--ok-bg);     color: var(--ok);     border-color: var(--ok); }
+  .chip.warn { background: var(--warn-bg);   color: var(--warn);   border-color: var(--warn); }
+  .chip.crit { background: var(--crit-bg);   color: var(--crit);   border-color: var(--crit); }
+  .chip.neu  { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .chip.idle { background: var(--rule-soft); color: var(--muted);  border-color: var(--rule); }
+
+  /* ---------- lifecycle diagram ---------- */
+  .flow {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--surface);
+    padding: 26px 24px 20px;
+    margin: 0 0 20px;
+    overflow-x: auto;
+  }
+  .flow-row { display: flex; align-items: center; gap: 10px; min-width: max-content; margin-bottom: 14px; }
+  .flow-row:last-of-type { margin-bottom: 0; }
+  .node {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .node.start { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+  .node.done  { border-color: var(--ok);   color: var(--ok);   background: var(--ok-bg); }
+  .node.hold  { border-color: var(--warn); color: var(--warn); background: var(--warn-bg); }
+  .node.stop  { border-color: var(--crit); color: var(--crit); background: var(--crit-bg); }
+  .arrow { color: var(--muted); font-family: var(--mono); font-size: 13px; flex-shrink: 0; }
+  .flow-note {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 16px 0 0;
+    padding-top: 14px;
+    border-top: 1px dashed var(--rule);
+  }
+  .branch { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ---------- misc ---------- */
+  .note {
+    border-left: 2px solid var(--rule);
+    padding: 2px 0 2px 16px;
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  .note strong { color: var(--ink-soft); }
+
+  footer {
+    grid-column: 1 / -1;
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  a { color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; gap: 0; padding: 0 20px 64px; }
+    .index {
+      position: static;
+      margin-bottom: 44px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .index ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 2px 18px; }
+    .facts { grid-template-columns: repeat(2, 1fr); }
+    .masthead { padding-top: 40px; }
+    .stamp { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <div>
+      <h1>LetThemKnow 產品需求文件</h1>
+      <p class="sub">多租戶通知與行銷活動平台，支援 LINE 與 Email 雙通道。本文件描述 v1 已交付範圍，並列出後續規劃。</p>
+    </div>
+    <div class="stamp">
+      版本　<b>v1.0</b><br>
+      日期　<b>2026-09-15</b><br>
+      狀態　<b>已上線</b><br>
+      對象　<b>管理層、使用者</b>
+    </div>
+  </header>
+
+  <nav class="index" aria-label="章節目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#s1"><span class="n">1</span><span>摘要</span></a></li>
+      <li><a href="#s2"><span class="n">2</span><span>問題與背景</span></a></li>
+      <li><a href="#s3"><span class="n">3</span><span>目標與非目標</span></a></li>
+      <li><a href="#s4"><span class="n">4</span><span>使用者角色</span></a></li>
+      <li><a href="#s5"><span class="n">5</span><span>功能範圍</span></a></li>
+      <li><a href="#s6"><span class="n">6</span><span>活動生命週期</span></a></li>
+      <li><a href="#s7"><span class="n">7</span><span>安全與資料保護</span></a></li>
+      <li><a href="#s8"><span class="n">8</span><span>系統限制</span></a></li>
+      <li><a href="#s9"><span class="n">9</span><span>部署與營運</span></a></li>
+      <li><a href="#s10"><span class="n">10</span><span>已知風險</span></a></li>
+      <li><a href="#s11"><span class="n">11</span><span>後續規劃</span></a></li>
+      <li><a href="#s12"><span class="n">12</span><span>驗收與現況</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2><span class="n">1</span><span>摘要</span></h2>
+
+      <div class="summary">
+        <p><strong>LetThemKnow 讓每個租戶用自己的 SMTP 與 LINE 官方帳號，對自己的名單發送通知。</strong>平台負責名單管理、範本、排程、分批發送、失敗重試與結果追蹤；憑證與發送信譽留在租戶自己手上。</p>
+        <p>租戶除了使用網頁主控台，也可以用 API key 讓自家系統（例如 ERP、訂單系統）直接觸發單筆通知，不需要人工操作。</p>
+        <p style="margin-bottom:0">v1 已完成開發、測試並上線運行。本文件描述的功能皆為<strong>已實作且可驗證</strong>的內容，所有數據取自程式碼或實測，非估計值。</p>
+      </div>
+
+      <dl class="facts">
+        <div>
+          <dt>單次活動上限</dt>
+          <dd>200,000<small>筆收件人 / 20 MB CSV</small></dd>
+        </div>
+        <div>
+          <dt>實測發送</dt>
+          <dd>500 / 0<small>成功 / 失敗</small></dd>
+        </div>
+        <div>
+          <dt>整合 API 限流</dt>
+          <dd>60<small>次 / 分鐘 / 每把金鑰</small></dd>
+        </div>
+        <div>
+          <dt>月營運成本</dt>
+          <dd>≈ US$3.65<small>固定 IP 費用，主機為免費額度</small></dd>
+        </div>
+      </dl>
+
+      <p>目前尚無正式租戶資料，系統處於可開放使用的狀態。管理者可決定是否開啟自助註冊。</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2><span class="n">2</span><span>問題與背景</span></h2>
+
+      <p>企業要發送交易通知或行銷訊息時，通常面臨三個問題。</p>
+
+      <ul>
+        <li><strong>工具各自為政。</strong>Email 用一套系統、LINE 用另一套，名單與發送結果無法放在一起看。</li>
+        <li><strong>發送信譽綁在第三方。</strong>多數 SaaS 用自己的伺服器代發，一旦其他客戶被檢舉，你的信件也一起被擋。</li>
+        <li><strong>系統要串接很麻煩。</strong>訂單成立要即時通知客戶時，行銷工具往往只提供批次匯入，無法由程式即時觸發。</li>
+      </ul>
+
+      <p>LetThemKnow 的取捨是：<strong>平台不碰發送憑證的所有權</strong>。每個租戶填入自己的 SMTP 帳號與 LINE Channel access token，平台只負責排程與派送。信譽、退信、同意權都留在租戶身上，平台不會成為共用的黑名單來源。</p>
+
+      <p>同時，平台把「批次活動」與「單筆即時通知」放在同一套範本與紀錄之下，行銷人員在主控台編輯的範本，工程師可以直接用 API 呼叫。</p>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2><span class="n">3</span><span>目標與非目標</span></h2>
+
+      <h3>目標</h3>
+      <ul>
+        <li>讓非技術人員在主控台完成「建立範本 → 匯入名單 → 發送 → 查看結果」的完整流程。</li>
+        <li>租戶之間的資料完全隔離，任何情況下都不會互相看見。</li>
+        <li>通道憑證加密儲存，介面與 API 一律不回傳明文。</li>
+        <li>發送過程可中止、可重試，失敗名單可以被人工檢視與處理。</li>
+        <li>提供外部系統以 API key 觸發單筆通知的介面。</li>
+        <li>在單一小型主機上穩定運行，控制營運成本。</li>
+      </ul>
+
+      <h3>非目標（v1 明確不做）</h3>
+      <p>以下項目經評估後排除，不是遺漏。列在這裡是為了讓審查時有明確的討論對象。</p>
+      <ul>
+        <li>Refresh token 與多角色權限（v1 僅有 <code>ADMIN</code> 一種角色）</li>
+        <li>LINE 接收訊息的 webhook（僅單向發送）</li>
+        <li>退訂與抑制名單（suppression list）</li>
+        <li>各租戶的 SMTP 發送速率節流</li>
+        <li>介面多語系</li>
+        <li>Worker 獨立部署（v1 與 API 同一個程序）</li>
+        <li>加密金鑰輪替機制</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2><span class="n">4</span><span>使用者角色</span></h2>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>角色</th><th>主要工作</th><th>使用方式</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>行銷／營運人員</td>
+              <td>編輯範本、匯入名單、發送活動、追蹤成效、處理失敗名單</td>
+              <td>網頁主控台</td>
+            </tr>
+            <tr>
+              <td>整合工程師</td>
+              <td>讓自家系統在事件發生時即時送出單筆通知</td>
+              <td>整合 API（<code>X-API-KEY</code>）</td>
+            </tr>
+            <tr>
+              <td>平台管理者</td>
+              <td>部署、設定註冊碼、備份、監看資源</td>
+              <td>主機指令與 GitHub Actions</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note">v1 的權限模型刻意保持簡單：一個租戶內的所有使用者都是 <code>ADMIN</code>。細分權限列入後續規劃，不在本版範圍。</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2><span class="n">5</span><span>功能範圍</span></h2>
+
+      <h3>5.1　帳號與租戶</h3>
+      <p>使用者可在 <code>/signup</code> 以「公司名稱、Email、密碼、註冊碼」建立自己的工作空間，成功後直接登入，不需要再登入一次。登入後取得的憑證有效 12 小時。</p>
+      <p><strong>註冊碼未設定時，自助註冊是關閉的，而不是開放的。</strong>管理者必須主動設定註冊碼才會開放。輸入錯誤的註冊碼與「功能未開放」會得到完全相同的回應，外界無法藉此探測。</p>
+
+      <h3>5.2　訊息範本</h3>
+      <p>提供 9 組現成範本：Email 6 組（公告、訂單更新、歡迎信、簡要通知、收據、安全提醒），LINE 3 組（文字公告、按鈕卡片、訂單 Flex 卡片）。編輯時右側即時預覽，Email 可切換桌機與手機寬度。</p>
+      <p>內容以 <code>{{參數}}</code> 代入收件人資料。Email 範本全部使用表格排版與行內樣式，不含任何圖片檔，因為 Gmail 與 Outlook 會移除 SVG。</p>
+
+      <h3>5.3　名單匯入</h3>
+      <p>以 CSV 上傳，第一欄為收件人（Email 或 LINE user ID），其餘欄位成為範本參數。上傳區提供「下載範例 CSV」，欄位會依照該活動所選範本的參數自動產生，不會對不上。</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>項目</th><th>規則</th></tr></thead>
+          <tbody>
+            <tr><td>檔案大小</td><td class="num">最大 20 MB</td></tr>
+            <tr><td>筆數</td><td class="num">最多 200,000 筆</td></tr>
+            <tr><td>重複收件人</td><td>自動去除，只保留一筆</td></tr>
+            <tr><td>Email 格式</td><td>必須符合基本 Email 格式，否則略過</td></tr>
+            <tr><td>LINE user ID</td><td>必須為 <code>U</code> 開頭加 32 碼小寫十六進位</td></tr>
+            <tr><td>可匯入時機</td><td>僅限草稿狀態的活動</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>5.4　通道設定</h3>
+      <p>Email 填入 SMTP 主機、埠、加密方式、帳號密碼與寄件人。<strong>儲存前會實際寄出一封測試信，寄不出去就不會儲存</strong>，所以儲存成功代表真的能寄信，而不是設定看起來正確。</p>
+      <p>LINE 填入 Channel secret 與 access token。兩者的密碼與 token 都經過加密後才寫入資料庫。</p>
+
+      <h3>5.5　活動發送</h3>
+      <p>活動可立即發送或指定時間發送。系統將名單切成小批處理：Email 每批 50 筆，LINE 每批 500 筆（LINE multicast 的上限）。每筆收件人各自記錄狀態，因此可以精確知道誰收到、誰沒收到。</p>
+
+      <h3>5.6　失敗處理與重試</h3>
+      <p>系統區分兩種失敗。<strong>暫時性失敗</strong>（連線逾時、對方限流）自動重試最多 3 次，間隔 30 秒起逐次加倍；<strong>永久性失敗</strong>（地址無效、憑證錯誤）直接標記失敗，不浪費重試次數。</p>
+      <p>活動結束後若有失敗，狀態會停在 <span class="chip warn">AWAITING_RESOLUTION</span>，等待人工決定。操作者可以檢視失敗清單與原因，再決定是否重送。</p>
+
+      <h3>5.7　整合 API</h3>
+      <p>租戶可自行產生 API key，讓自家系統呼叫。金鑰明文只在建立當下顯示一次，之後系統只留雜湊值。</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>用途</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>連線測試</td><td>確認金鑰有效</td></tr>
+            <tr><td>發送單筆</td><td>指定範本與收件人，同步送出並回傳結果</td></tr>
+            <tr><td>查詢紀錄</td><td>以訊息編號查詢該筆的發送狀態</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><strong>限流：</strong>每把金鑰每分鐘 60 次，超過回應 <code>429</code> 並附上重試秒數。請注意部分 HTTP 客戶端（例如 Apache HttpClient 5）會自動遵守該標頭並靜默重送，讓程式看不到被限流。</p>
+
+      <h3>5.8　主控台</h3>
+      <p>頁面包含儀表板、活動列表與四步驟建立精靈、活動明細（即時計數與失敗處理抽屜）、範本編輯器、通道設定、API 金鑰，以及給整合工程師的開發者頁面，內含可直接複製的 curl／Node／Python 範例。時間一律以台北時間顯示，資料庫則統一存 UTC。</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2><span class="n">6</span><span>活動生命週期</span></h2>
+
+      <p>活動的狀態轉換是系統的核心規則，所有操作都必須遵循。不合法的轉換會被拒絕。</p>
+
+      <div class="flow">
+        <div class="flow-row">
+          <span class="node start">DRAFT</span>
+          <span class="arrow">→</span>
+          <span class="node">SCHEDULED</span>
+          <span class="arrow">→</span>
+          <span class="node">PROCESSING</span>
+          <span class="arrow">→</span>
+          <span class="branch">
+            <span class="node done">COMPLETED</span>
+            <span class="node hold">AWAITING_RESOLUTION</span>
+          </span>
+        </div>
+        <div class="flow-row">
+          <span class="node hold">AWAITING_RESOLUTION</span>
+          <span class="arrow">→</span>
+          <span class="node">RETRYING</span>
+          <span class="arrow">→</span>
+          <span class="branch">
+            <span class="node done">COMPLETED</span>
+            <span class="node hold">AWAITING_RESOLUTION</span>
+          </span>
+        </div>
+        <div class="flow-row">
+          <span class="arrow">任何進行中狀態</span>
+          <span class="arrow">→</span>
+          <span class="node stop">TERMINATED</span>
+          <span class="arrow">（人工中止）</span>
+        </div>
+        <p class="flow-note">完成規則：失敗數為 0 則進入 <span class="chip ok">COMPLETED</span>，只要有任何一筆失敗就進入 <span class="chip warn">AWAITING_RESOLUTION</span>，交由人判斷。系統不會自作主張地把有失敗的活動標記為完成。</p>
+      </div>
+
+      <h3>收件人狀態</h3>
+      <p>每一位收件人各自有狀態，活動的統計數字由這些狀態累加而成。</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>狀態</th><th>意義</th></tr></thead>
+          <tbody>
+            <tr><td><span class="chip idle">PENDING</span></td><td>已匯入，尚未送出</td></tr>
+            <tr><td><span class="chip neu">SENDING</span></td><td>已被取走，正在送出</td></tr>
+            <tr><td><span class="chip ok">SENT</span></td><td>已成功送出</td></tr>
+            <tr><td><span class="chip crit">FAILED</span></td><td>送出失敗，重試次數已用盡或屬永久性錯誤</td></tr>
+            <tr><td><span class="chip idle">CANCELLED</span></td><td>活動被中止，這筆未送出</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note"><strong>不重複發送：</strong>派送前系統會先鎖定該批收件人，只有實際鎖到的才會送出。即使處理程序中途中斷，已送出的收件人也不會被重送；未完成的批次會在 5 分鐘後由回收機制接手。</p>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2><span class="n">7</span><span>安全與資料保護</span></h2>
+
+      <h3>租戶隔離</h3>
+      <p>每一筆與租戶相關的資料都帶有租戶識別，查詢時由系統自動加上條件，不依賴開發者記得手動過濾。</p>
+      <p><strong>存取其他租戶的資料時，系統回應「找不到」而不是「沒有權限」。</strong>這是刻意的設計：回應「沒有權限」等於承認該筆資料存在，可被用來推測其他租戶的規模與活動。</p>
+
+      <h3>憑證保護</h3>
+      <ul>
+        <li>SMTP 密碼與 LINE token 以 AES-256-GCM 加密後儲存。</li>
+        <li>API 回應只顯示「是否已設定」，不回傳明文，也不回傳遮罩後可還原的內容。</li>
+        <li>系統紀錄中不會出現解密後的值。</li>
+        <li>API key 只保存雜湊值，比對採用固定時間演算法，避免由回應時間推測金鑰。</li>
+      </ul>
+
+      <h3>存取控制</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>使用者</th><th>驗證方式</th><th>可存取範圍</th></tr></thead>
+          <tbody>
+            <tr><td>主控台使用者</td><td>登入後取得的憑證，效期 12 小時</td><td>該租戶的全部功能</td></tr>
+            <tr><td>外部系統</td><td><code>X-API-KEY</code></td><td>僅整合 API，不能存取主控台功能</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><strong>金鑰遺失的後果：</strong>主加密金鑰用來解開所有租戶的通道憑證。金鑰一旦遺失，資料庫備份中的憑證將無法還原，所有租戶必須重新輸入。此金鑰必須與備份分開保存。</p>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2><span class="n">8</span><span>系統限制</span></h2>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>項目</th><th>限制</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>CSV 檔案</td><td class="num">20 MB</td><td>超過即拒絕</td></tr>
+            <tr><td>收件人筆數</td><td class="num">200,000</td><td>單一活動</td></tr>
+            <tr><td>Email 每批</td><td class="num">50</td><td>派送分批大小</td></tr>
+            <tr><td>LINE 每批</td><td class="num">500</td><td>LINE multicast 上限</td></tr>
+            <tr><td>自動重試</td><td class="num">3 次</td><td>間隔 30 秒起逐次加倍</td></tr>
+            <tr><td>逾時回收</td><td class="num">5 分鐘</td><td>中斷的批次由此機制接手</td></tr>
+            <tr><td>API 限流</td><td class="num">60 次／分</td><td>每把金鑰</td></tr>
+            <tr><td>登入效期</td><td class="num">12 小時</td><td>到期需重新登入</td></tr>
+            <tr><td>LINE 訊息</td><td class="num">5 則</td><td>單一範本內的訊息數上限</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>時間處理</h3>
+      <p>資料庫一律以 UTC 儲存，介面以台北時間顯示與輸入。API 對外一律使用 ISO-8601 的 UTC 格式，避免跨時區誤解。</p>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2><span class="n">9</span><span>部署與營運</span></h2>
+
+      <p>系統運行於單一台 Google Cloud 小型主機，前方以 Cloudflare Tunnel 承接流量。</p>
+
+      <h3>對外沒有開放任何網頁連接埠</h3>
+      <p>主機上的通道程式主動向 Cloudflare 建立連線，流量從這條連線回來，因此不需要開放 HTTP 埠，也沒有對外的網頁服務可被掃描攻擊。唯一對外開放的是 SSH，僅供自動部署使用，且只接受金鑰。</p>
+
+      <h3>自動部署</h3>
+      <p>程式碼推送後自動建置映像檔、上傳、連線到主機更新服務，並等待服務回報健康才算成功。因此部署結果是紅燈時，代表服務真的沒起來，而不只是連線失敗。</p>
+
+      <h3>成本</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>項目</th><th>費用</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>主機</td><td class="num">US$0</td><td>符合免費額度</td></tr>
+            <tr><td>硬碟</td><td class="num">US$0</td><td>符合免費額度</td></tr>
+            <tr><td>對外 IP</td><td class="num">≈ US$3.65 / 月</td><td>依使用時數計費，無免費額度</td></tr>
+            <tr><td>Cloudflare Tunnel</td><td class="num">US$0</td><td>免費方案</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">對外 IP 是本架構唯一無法避免的固定費用。主機本身免費，但它的對外位址不是。此外每月有 1 GB 的對外流量額度，主控台使用量大時需留意。</p>
+
+      <h3>備份</h3>
+      <p>所有重要資料都在資料庫中：租戶、範本、活動與加密後的通道憑證。備份指令已寫入維運手冊。<strong>備份本身無法單獨還原</strong>，必須搭配主加密金鑰，因此兩者要分開保存。</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2><span class="n">10</span><span>已知風險</span></h2>
+
+      <p>以下為目前架構的真實限制，列出是為了讓決策者知道取捨在哪裡，而不是等到出事才發現。</p>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>風險</th><th>影響</th><th>目前對策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>單機無備援</td>
+              <td>主機故障即全站中斷</td>
+              <td>接受。此規模下備援成本高於效益</td>
+            </tr>
+            <tr>
+              <td>更新需重啟</td>
+              <td>每次更新約 6 分鐘無法使用</td>
+              <td>避開發送時段更新；已列入後續改善</td>
+            </tr>
+            <tr>
+              <td>記憶體上限 1 GB</td>
+              <td>服務個別設有記憶體上限，超過會被系統終止</td>
+              <td>已實測 500 筆發送無異常；已設定 2 GB 置換空間</td>
+            </tr>
+            <tr>
+              <td>主加密金鑰遺失</td>
+              <td>所有租戶的通道憑證無法還原</td>
+              <td>金鑰與備份分開保存；輪替機制列入後續</td>
+            </tr>
+            <tr>
+              <td>對外 IP 非固定</td>
+              <td>主機重開後位址改變，自動部署會中斷</td>
+              <td>已列入後續：改用保留位址，費用相同</td>
+            </tr>
+            <tr>
+              <td>無退訂機制</td>
+              <td>收件人無法自行取消訂閱</td>
+              <td>v1 明確不做；由租戶自行維護名單</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <h2><span class="n">11</span><span>後續規劃</span></h2>
+
+      <p>依價值與風險排序，非承諾時程。</p>
+
+      <h3>產品功能</h3>
+      <ul>
+        <li><strong>退訂與抑制名單</strong>　對行銷用途而言，這是最接近法規要求的缺口，建議優先。</li>
+        <li><strong>細分角色權限</strong>　目前一個租戶內所有人權限相同，不利於多人協作。</li>
+        <li><strong>LINE 接收訊息</strong>　可承接客戶回覆，將單向通知擴展為雙向溝通。</li>
+        <li><strong>介面多語系</strong>　目前僅有單一語言介面。</li>
+      </ul>
+
+      <h3>營運改善</h3>
+      <ul>
+        <li><strong>縮短啟動時間</strong>　目前啟動約需 6 分鐘，主因是主機記憶體不足而頻繁置換。實測顯示約有 130 MB 被與本系統無關的監控代理程式佔用，移除後可望明顯改善。</li>
+        <li><strong>改用保留 IP</strong>　費用與現況相同，但可避免主機重啟後位址變動導致部署失敗。</li>
+        <li><strong>備份自動化</strong>　目前為手動指令，建議排程並將備份送出主機外。</li>
+        <li><strong>金鑰輪替</strong>　目前主加密金鑰無法在不重新輸入憑證的情況下更換。</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <h2><span class="n">12</span><span>驗收與現況</span></h2>
+
+      <h3>測試</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>類型</th><th>數量</th><th>涵蓋範圍</th></tr></thead>
+          <tbody>
+            <tr><td>整合測試</td><td class="num">70</td><td>使用真實資料庫與 Redis 容器，涵蓋每個 API 與租戶隔離</td></tr>
+            <tr><td>單元測試</td><td class="num">35</td><td>加密、範本代入、狀態機、權杖</td></tr>
+            <tr><td>端對端測試</td><td class="num">1 組</td><td>登入至活動完成的完整流程</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>已驗證運作的項目</h3>
+      <ul>
+        <li>主控台與整合 API 皆可由外部正常存取。</li>
+        <li>自助註冊可建立租戶並直接登入；註冊碼錯誤會顯示明確訊息。</li>
+        <li>500 筆收件人的活動實測：<strong>500 筆成功、0 筆失敗</strong>，過程中無服務被系統終止。</li>
+        <li>推送程式碼後可自動完成部署，並等待服務健康確認。</li>
+      </ul>
+
+      <h3>上線待辦</h3>
+      <ul>
+        <li>建立第一個正式租戶（目前為 0）。</li>
+        <li>設定該租戶的 SMTP 與 LINE 通道。</li>
+        <li>確認主加密金鑰已另行保存。</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    本文件描述 LetThemKnow v1 的已交付內容。文中所有數字取自程式碼設定或實際測量，未使用估計值。功能異動時應同步更新本文件版本。
+  </footer>
+
+</div>
