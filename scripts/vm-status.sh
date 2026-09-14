@@ -125,6 +125,25 @@ if [ -f "$ENVF" ]; then
   [ "$(envval COMPOSE_PROFILES)" = "app" ] || fail "COMPOSE_PROFILES must be 'app' or api/web/cloudflared never start"
 fi
 
+# ---------------------------------------------------------------- .env actually reaching the api
+head_ "Does the api container receive what .env declares?"
+# A value in .env is only interpolated into docker-compose.yml. It reaches the container solely because
+# the service lists it under environment:. Setting one without the other looks correct on the VM and is
+# silently ignored by the app, which is how LTK_SIGNUP_CODE was set and still refused every code.
+if docker inspect letthemknow-api-1 >/dev/null 2>&1 && [ -f "$ENVF" ]; then
+  for k in LTK_MASTER_KEY LTK_JWT_SECRET LTK_SIGNUP_CODE APP_WORKER_ENABLED DB_URL DB_USER DB_PASSWORD REDIS_URL; do
+    inenv=$(envval "$k")
+    [ -n "$inenv" ] || continue
+    if docker exec letthemknow-api-1 printenv "$k" >/dev/null 2>&1; then
+      ok "$k reaches the container"
+    else
+      fail "$k is set in .env but NOT passed to the container: add it under the api service's environment: in docker-compose.yml"
+    fi
+  done
+else
+  note "api container not present"
+fi
+
 # ---------------------------------------------------------------- containers
 head_ "Containers"
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
