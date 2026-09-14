@@ -37,6 +37,7 @@ curl -s http://localhost:8081/api/v1/health
 | Client | Mechanism | Scope |
 |---|---|---|
 | Web console | `POST /api/v1/auth/login` → JWT (HS256, 12 h), sent as `Authorization: Bearer …` | everything except `/api/v1/integration/**` |
+| New workspace | `POST /api/v1/auth/signup` → the same JWT, so the new admin lands signed in | gated by the shared `LTK_SIGNUP_CODE`; unset means signup is **disabled**, not open |
 | ERP / external | `X-API-KEY: ltk_<8 char prefix>_<32 char secret>` | only `/api/v1/integration/**` |
 
 ```bash

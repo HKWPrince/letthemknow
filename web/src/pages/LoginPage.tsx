@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/lib/auth";
 import { errorMessage } from "@/api/client";
@@ -67,7 +67,10 @@ export function LoginPage() {
           )}
         </div>
 
-        <div className="mt-8 flex items-center justify-end">
+        <div className="mt-8 flex items-center justify-between">
+          <Link to="/signup" className="text-sm text-gcp-blue hover:underline">
+            Create a workspace
+          </Link>
           <Button type="submit" loading={busy}>Sign in</Button>
         </div>
       </form>

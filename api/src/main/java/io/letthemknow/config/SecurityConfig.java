@@ -73,6 +73,8 @@ class SecurityConfig {
                         .requestMatchers("/api/docs", "/api/docs/**", "/api/swagger-ui/**",
                                 "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        // Signup carries its own gate: it is refused unless LTK_SIGNUP_CODE is set and matched.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/signup").permitAll()
                         .requestMatchers("/api/v1/integration/**").hasRole(LtkPrincipal.ROLE_INTEGRATION)
                         .anyRequest().hasRole(UserRole.ADMIN.name()))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

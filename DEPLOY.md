@@ -253,6 +253,9 @@ DB_PASSWORD=
 REDIS_URL=redis://redis:6379
 APP_WORKER_ENABLED=true
 
+# Shared code for self-service signup at /signup. EMPTY means signup is disabled, never open.
+LTK_SIGNUP_CODE=
+
 CLOUDFLARE_TUNNEL_TOKEN=
 EOF
 
@@ -273,7 +276,33 @@ Push to `main`, or run the **Deploy** workflow manually from the Actions tab. It
 pushes them to GHCR, SSHes in, pulls, restarts, and then waits for the API container to report healthy —
 so a red workflow means a genuinely broken deploy, not just a failed SSH.
 
-Then create your first real tenant. **Stop the API first.** `docker compose run` starts a *second*
+Then create your first tenant. There are two ways, and the first is easier.
+
+### Sign up in the browser
+
+Set a signup code on the VM and restart the API:
+
+```bash
+cd /opt/letthemknow
+printf 'LTK_SIGNUP_CODE=%s\n' "$(openssl rand -base64 18)" >> .env
+grep '^LTK_SIGNUP_CODE=' .env      # copy the value, you need it on the form
+docker compose up -d api
+```
+
+Open `https://letthemknow.hkwprince.com/signup`, fill in the company, your email, a password and that
+code, and you land signed in as the administrator of a new workspace.
+
+**An empty or missing `LTK_SIGNUP_CODE` disables signup rather than opening it**, so a deployment is
+closed until you deliberately open it. Keep the code out of the repository: `scripts/check-secrets.sh`
+refuses to commit it. To close signup again, blank the value and restart the API.
+
+A wrong code and a disabled deployment return exactly the same refusal, so nobody can use the page to
+work out whether signup exists here or whether a guess was close.
+
+### Or provision from the command line
+
+Useful when nobody can sign in, or when you would rather not open signup at all. **Stop the API first.**
+`docker compose run` starts a *second*
 complete instance of the application: the provisioning CLI runs on `ApplicationReadyEvent`, so the whole
 app boots — Tomcat, JPA, the connection pool and the dispatch workers — before it inserts two rows and
 exits. On a 1 GB VM that does not fit beside the running one, and the kernel may pick the live API as

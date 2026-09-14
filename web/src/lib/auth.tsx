@@ -13,10 +13,18 @@ interface Session {
   tenant: TenantDto;
 }
 
+interface SignupInput {
+  tenantName: string;
+  email: string;
+  password: string;
+  code: string;
+}
+
 interface AuthContextValue {
   session: Session | null;
   ready: boolean;
   login: (email: string, password: string, tenant?: string) => Promise<void>;
+  signup: (input: SignupInput) => Promise<void>;
   logout: () => void;
 }
 
@@ -77,8 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = React.useCallback(async (email: string, password: string, tenant?: string) => {
-    const res = await api.post<LoginResponse>("/auth/login", { email, password, tenant: tenant || undefined });
+  // Both entry points end in a session, so they share one place that stores it.
+  const adopt = React.useCallback((res: LoginResponse) => {
     const next: Session = { token: res.token, expiresAt: res.expiresAt, user: res.user, tenant: res.tenant };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -88,7 +96,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(next);
   }, []);
 
-  const value = React.useMemo(() => ({ session, ready, login, logout }), [session, ready, login, logout]);
+  const login = React.useCallback(async (email: string, password: string, tenant?: string) => {
+    adopt(await api.post<LoginResponse>("/auth/login", { email, password, tenant: tenant || undefined }));
+  }, [adopt]);
+
+  // Signup returns a session too, so a new admin lands signed in with no second round-trip.
+  const signup = React.useCallback(async (input: SignupInput) => {
+    adopt(await api.post<LoginResponse>("/auth/signup", input));
+  }, [adopt]);
+
+  const value = React.useMemo(
+    () => ({ session, ready, login, signup, logout }),
+    [session, ready, login, signup, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

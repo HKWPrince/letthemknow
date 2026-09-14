@@ -70,6 +70,8 @@ ltk:
     master-key: ${LTK_MASTER_KEY:}
     jwt-secret: ${LTK_JWT_SECRET:}
     jwt-ttl: 12h
+    # Shared code for self-service tenant creation. Unset means signup is DISABLED, not open.
+    signup-code: ${LTK_SIGNUP_CODE:}
   worker:
     enabled: ${APP_WORKER_ENABLED:true}
   integration:

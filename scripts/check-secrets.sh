@@ -27,7 +27,7 @@ report() { printf '  \033[31mBLOCKED\033[0m  %s\n            %s\n' "$1" "$2"; fa
 # code that produces a value, never the value itself.
 PLACEHOLDER='CHANGE_ME|PASTE|YOUR_|REPLACE|EXAMPLE|SAMPLE|xxxx|XXXX|\.\.\.|^<.*>$|^\$\{|^\$\(|^\*+$|^-+$|^your-'
 
-SECRET_NAMES='LTK_MASTER_KEY|LTK_JWT_SECRET|MYSQL_ROOT_PASSWORD|DB_PASSWORD|CLOUDFLARE_TUNNEL_TOKEN|GHCR_TOKEN|MYSQL_PASSWORD'
+SECRET_NAMES='LTK_MASTER_KEY|LTK_JWT_SECRET|LTK_SIGNUP_CODE|MYSQL_ROOT_PASSWORD|DB_PASSWORD|CLOUDFLARE_TUNNEL_TOKEN|GHCR_TOKEN|MYSQL_PASSWORD'
 
 # Files whose credentials are fixtures by design, verified as such:
 #   .env.example                 the template; its values are the compose defaults, never a real host

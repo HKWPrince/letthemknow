@@ -22,7 +22,8 @@ class JwtServiceTest {
     private static final Instant T0 = Instant.parse("2026-09-10T00:00:00Z");
 
     private static JwtService serviceAt(Instant now, String secret) {
-        return new JwtService(new LtkSecurityProperties("unused", secret, Duration.ofHours(12)),
+        // signupCode is irrelevant to token issuing; null keeps signup disabled, which is the safe default.
+        return new JwtService(new LtkSecurityProperties("unused", secret, Duration.ofHours(12), null),
                 Clock.fixed(now, ZoneOffset.UTC));
     }
 

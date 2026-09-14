@@ -3,6 +3,7 @@ package io.letthemknow.auth;
 import io.letthemknow.auth.dto.LoginRequest;
 import io.letthemknow.auth.dto.LoginResponse;
 import io.letthemknow.auth.dto.MeResponse;
+import io.letthemknow.auth.dto.SignupRequest;
 import io.letthemknow.common.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,12 @@ class AuthController {
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.ok(authService.login(request));
+    }
+
+    /** Self-service tenant creation, gated by the shared signup code. Returns a session, as login does. */
+    @PostMapping("/signup")
+    ApiResponse<LoginResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ApiResponse.ok(authService.signup(request));
     }
 
     @GetMapping("/me")

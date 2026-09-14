@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
 import { AppShell } from "@/components/layout/AppShell";
 import { LoginPage } from "@/pages/LoginPage";
+import { SignupPage } from "@/pages/SignupPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { CampaignsPage } from "@/pages/CampaignsPage";
 import { CampaignWizardPage } from "@/pages/CampaignWizardPage";
@@ -23,6 +24,7 @@ const queryClient = new QueryClient({
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/signup", element: <SignupPage /> },
   {
     path: "/",
     element: (
