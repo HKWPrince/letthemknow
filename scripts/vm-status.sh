@@ -64,10 +64,16 @@ if [ -f ~/.ssh/authorized_keys ] && ssh-keygen -lf ~/.ssh/authorized_keys 2>/dev
   ok "deploy key authorised for $(whoami)"
   # A key the guest agent manages is one it will also restore. A hand-appended key is one it deletes,
   # so report where this key actually came from rather than just that it is present today.
-  if { curl -sf -m 3 -H "$MH" "$META/instance/attributes/ssh-keys" 2>/dev/null;
-       curl -sf -m 3 -H "$MH" "$META/project/attributes/ssh-keys" 2>/dev/null; } \
-       | grep -q "$(awk '{print $2}' ~/.ssh/authorized_keys | head -1)"; then
-    ok "and it comes from instance/project metadata, so the guest agent will keep it"
+  # Match the deploy key by fingerprint, then look for that exact blob in metadata. Taking the first
+  # line of authorized_keys instead would read the agent's "# Added by Google" comment and never match.
+  blob=$(grep -E '^(ssh-|ecdsa-)' ~/.ssh/authorized_keys 2>/dev/null | while IFS= read -r k; do
+           [ "$(printf '%s\n' "$k" | ssh-keygen -lf - 2>/dev/null | awk '{print $2}')" = "$DEPLOY_KEY_FP" ] \
+             && printf '%s' "$k" | awk '{print $2}'
+         done | head -1)
+  if [ -n "$blob" ] && { curl -sf -m 3 -H "$MH" "$META/instance/attributes/ssh-keys" 2>/dev/null;
+                         curl -sf -m 3 -H "$MH" "$META/project/attributes/ssh-keys" 2>/dev/null; } \
+                       | grep -qF "$blob"; then
+    ok "and it is backed by instance/project metadata, so the guest agent will keep it"
   else
     fail "but it is NOT in metadata: the guest agent can delete this file (it already did once). Add the key under Compute Engine -> VM -> Edit -> SSH Keys (runbook step 3)"
   fi
