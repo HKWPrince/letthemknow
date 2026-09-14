@@ -1,0 +1,29 @@
+# Test profile: datasource/redis are injected by Testcontainers via @DynamicPropertySource.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
+ltk:
+  security:
+    # 32 bytes of base64 decoding to "letthemknow-test-only-…": fixed so tests are deterministic,
+    # and self-evidently not a secret anyone could mistake for a real key.
+    master-key: bGV0dGhlbWtub3ctdGVzdC1vbmx5LW1hc3Rlci1rZXk=
+    jwt-secret: bGV0dGhlbWtub3ctdGVzdC1vbmx5LWp3dC1zZWNyZXQ=
+  worker:
+    # Off by default so only DispatchEngineIT (which enables it via @TestPropertySource) runs consumers.
+    enabled: false
+  dispatch:
+    retry-base: 1s
+    reaper-idle: 2s
+    # Periodic jobs are effectively disabled in tests; the ITs call them directly.
+    reaper-interval-ms: 3600000
+    narrowcast-poll-ms: 3600000
+    schedule-sweep-ms: 3600000
+  line:
+    # WireMock (LineApiClientIT) listens on this fixed port
+    base-url: http://localhost:18089
+
+logging:
+  level:
+    io.letthemknow: DEBUG
+    org.testcontainers: INFO

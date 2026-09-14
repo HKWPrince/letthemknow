@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Google Cloud Console palette, expressed as the shadcn HSL tokens so the primitives pick it up.
+ * Blue #1a73e8 · ground #f8f9fa · hairline #dadce0 · text #202124 / #5f6368
+ */
+@layer base {
+  :root {
+    --background: 210 17% 98%;
+    --foreground: 220 6% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 6% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 6% 13%;
+    --primary: 217 89% 51%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 17% 95%;
+    --secondary-foreground: 220 6% 13%;
+    --muted: 210 17% 95%;
+    --muted-foreground: 213 5% 39%;
+    --accent: 217 89% 95%;
+    --accent-foreground: 217 89% 40%;
+    --destructive: 4 69% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 9% 86%;
+    --input: 216 9% 86%;
+    --ring: 217 89% 51%;
+    --radius: 8px;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans text-sm;
+    letter-spacing: 0.01em;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Resource card: white, hairline, no shadow — the console never floats content. */
+  .gcp-card {
+    @apply rounded-lg border border-gcp-border bg-white;
+  }
+
+  /* Dense data table used on every list page. */
+  .gcp-table {
+    @apply w-full text-[13px];
+  }
+  .gcp-table th {
+    @apply h-11 border-b border-gcp-border px-4 text-left align-middle text-xs font-medium text-gcp-text2;
+  }
+  .gcp-table td {
+    @apply h-12 border-b border-gcp-border px-4 align-middle;
+  }
+  .gcp-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .gcp-table tbody tr:hover {
+    @apply bg-gcp-hover;
+  }
+  .gcp-table tbody tr[data-clickable="true"] {
+    @apply cursor-pointer;
+  }
+
+  .gcp-link {
+    @apply text-gcp-blue hover:underline;
+  }
+
+  .gcp-kbd {
+    @apply rounded border border-gcp-border bg-gcp-ground px-1.5 py-0.5 font-mono text-[12px] text-gcp-text;
+  }
+}

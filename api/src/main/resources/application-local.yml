@@ -1,0 +1,23 @@
+# Local development: infra from `docker compose --profile infra up` (mysql on host 3307, redis 6379).
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/letthemknow?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+  jpa:
+    show-sql: false
+
+ltk:
+  security:
+    # Dev-only placeholders so `pnpm dev` needs no setup. They are 32 bytes of base64 whose decoded text
+    # reads "letthemknow-local-dev-…" — deliberately not secret, and never to be used anywhere real.
+    # Production sets LTK_MASTER_KEY / LTK_JWT_SECRET from the environment; see DEPLOY.md.
+    master-key: ${LTK_MASTER_KEY:bGV0dGhlbWtub3ctbG9jYWwtZGV2LW1hc3Rlci1rZXk=}
+    jwt-secret: ${LTK_JWT_SECRET:bGV0dGhlbWtub3ctbG9jYWwtZGV2LWp3dC1zZWNyZXQ=}
+
+logging:
+  level:
+    io.letthemknow: DEBUG

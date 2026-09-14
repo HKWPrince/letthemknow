@@ -1,0 +1,114 @@
+name: letthemknow
+
+# Profiles:
+#   docker compose --profile infra up      -> mysql, redis only (local dev)
+#   docker compose up                      -> everything (COMPOSE_PROFILES=app in .env)
+services:
+  mysql:
+    image: mysql:8.0
+    # multi-arch, so no platform pin and no Rosetta emulation on Apple silicon
+    mem_limit: ${MYSQL_MEM_LIMIT:-256m}
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --performance-schema=OFF
+      - --max-connections=30
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-LetThemKnow_Root!Pass}
+      MYSQL_DATABASE: letthemknow
+      MYSQL_USER: ${DB_USER:-letthemknow}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-LetThemKnow_Str0ng!Pass}
+      TZ: UTC
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      # The first start on an empty volume initialises the data directory, which took 2m50s on an
+      # e2-micro (0.25 shared vCPU). The old 20s + 12x10s window expired 8s before MySQL was ready,
+      # so `compose up` aborted with the api left in Created. Failures during start_period do not
+      # count toward retries, so this gives a 6-minute window without slowing a healthy start.
+      retries: 30
+      start_period: 60s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    mem_limit: ${REDIS_MEM_LIMIT:-64m}
+    # maxmemory below the container limit so Redis evicts rather than being OOM-killed
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "48mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-local}/letthemknow-api:${IMAGE_TAG:-latest}
+    build: ./api
+    profiles: ["app"]
+    # The JVM reads the cgroup limit, so MaxRAMPercentage=75 in the image yields ~315 MB of heap here.
+    # Without a limit it sizes to the host: measured at 627 MB, which does not fit a 1 GB VM.
+    mem_limit: ${API_MEM_LIMIT:-420m}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      LTK_MASTER_KEY: ${LTK_MASTER_KEY}
+      LTK_JWT_SECRET: ${LTK_JWT_SECRET}
+      DB_URL: ${DB_URL:-jdbc:mysql://mysql:3306/letthemknow?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
+      DB_USER: ${DB_USER:-letthemknow}
+      DB_PASSWORD: ${DB_PASSWORD:-LetThemKnow_Str0ng!Pass}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      APP_WORKER_ENABLED: ${APP_WORKER_ENABLED:-true}
+      TZ: UTC
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      # Boot on the e2-micro measured 8.5 min before the JVM startup flags in api/Dockerfile.
+      # Docker never restarts a container for a failed health check, so an early "unhealthy" is only
+      # misleading, not fatal; still, keep the window wider than any boot we have seen.
+      retries: 40
+      start_period: 180s
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:-local}/letthemknow-web:${IMAGE_TAG:-latest}
+    build:
+      context: ./web
+      args:
+        # Where the Developers page tells integrators to send X-API-KEY requests. Falls back to the
+        # console's own origin when unset, which is what local dev wants.
+        VITE_PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+    profiles: ["app"]
+    mem_limit: ${WEB_MEM_LIMIT:-32m}
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["app"]
+    mem_limit: ${CLOUDFLARED_MEM_LIMIT:-64m}
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  redis-data:

@@ -1,0 +1,12 @@
+# Production inside docker compose: DB_URL / DB_USER / DB_PASSWORD / REDIS_URL / LTK_* come from .env.
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+spring:
+  flyway:
+    locations: classpath:db/migration
+
+logging:
+  level:
+    io.letthemknow: INFO

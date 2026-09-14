@@ -1,0 +1,115 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/letthemknow
+
+jobs:
+  build-push:
+    name: Build & push images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: meta
+        name: Compute tags
+        run: |
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push api
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/letthemknow-api:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/letthemknow-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Build & push web
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            VITE_PUBLIC_API_URL=${{ vars.PUBLIC_API_URL }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/letthemknow-web:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/letthemknow-web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+  deploy:
+    name: Deploy to VM
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The VM never sees the repository otherwise: it only pulls images. Without this step a change
+      # to docker-compose.yml (a health-check window, a memory cap) would sit in git and never deploy.
+      - name: Sync docker-compose.yml to the VM
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: docker-compose.yml
+          target: ${{ secrets.VM_APP_DIR }}
+
+      - name: docker compose pull && up
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          # appleboy/ssh-action v1 removed `script_stop`; the `set -e` below is its replacement.
+          script: |
+            set -e
+            cd "${{ secrets.VM_APP_DIR }}"
+            # Rewrite the tag, or append it when .env has no IMAGE_TAG line — a plain sed would
+            # silently no-op there and quietly deploy :latest instead of this commit.
+            if grep -q '^IMAGE_TAG=' .env; then
+              sed -i 's|^IMAGE_TAG=.*|IMAGE_TAG=${{ needs.build-push.outputs.tag }}|' .env
+            else
+              echo 'IMAGE_TAG=${{ needs.build-push.outputs.tag }}' >> .env
+            fi
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
+            # Fail the deploy loudly if the API does not come back healthy. The first boot on the
+            # e2-micro measured 8.5 min before the JVM startup flags; allow 12 so a slow-but-alive
+            # start is never reported as a failure.
+            for i in $(seq 1 144); do
+              s="$(docker inspect -f '{{.State.Health.Status}}' letthemknow-api-1 2>/dev/null || echo missing)"
+              if [ "$s" = "healthy" ]; then echo "api healthy after ~$((i*5))s"; exit 0; fi
+              [ $((i % 6)) -eq 0 ] && echo "waiting... api is $s ($((i*5))s)"
+              sleep 5
+            done
+            echo "api did not become healthy"; docker compose ps; docker compose logs --tail=50 api; exit 1
