@@ -165,14 +165,20 @@ The smoke test starts its own SMTP server on port 2525, so no real mail server i
 
 ### Provisioning a tenant
 
-```bash
-# local (another API may already be on 8081, so pick a free port)
-java -jar api/target/letthemknow-api-*.jar --spring.profiles.active=local --server.port=0 \
-  --provision-tenant --name=acme --admin-email=admin@acme.com --admin-password='S3cure-Pass!'
+The CLI runs on `ApplicationReadyEvent`, so it boots the whole application before inserting the rows and
+exiting. Keep that in mind wherever you run it: it is a full instance, not a lightweight script.
 
-# production VM
-docker compose run --rm api --provision-tenant --name=acme --admin-email=admin@acme.com --admin-password='S3cure-Pass!'
+```bash
+# local (another API may already be on 8081, so pick a free port; workers off so this throwaway
+# instance does not join the dispatchers consumer group)
+java -jar api/target/letthemknow-api-*.jar --spring.profiles.active=local --server.port=0 \
+  --ltk.worker.enabled=false \
+  --provision-tenant --name=acme --admin-email=admin@acme.com --admin-password='S3cure-Pass!'
 ```
+
+On the production VM the second instance does not fit beside the running one, so the API has to be
+stopped for it. `DEPLOY.md` section 6 carries the three-line sequence and explains why each line is
+there; follow it rather than the command above.
 
 Run the full verification before declaring a phase done:
 

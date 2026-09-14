@@ -273,13 +273,32 @@ Push to `main`, or run the **Deploy** workflow manually from the Actions tab. It
 pushes them to GHCR, SSHes in, pulls, restarts, and then waits for the API container to report healthy —
 so a red workflow means a genuinely broken deploy, not just a failed SSH.
 
-Then create your first real tenant:
+Then create your first real tenant. **Stop the API first.** `docker compose run` starts a *second*
+complete instance of the application: the provisioning CLI runs on `ApplicationReadyEvent`, so the whole
+app boots — Tomcat, JPA, the connection pool and the dispatch workers — before it inserts two rows and
+exits. On a 1 GB VM that does not fit beside the running one, and the kernel may pick the live API as
+the thing to kill.
 
 ```bash
 cd /opt/letthemknow
-docker compose run --rm api --provision-tenant \
+docker compose stop api            # frees the 420 MB cap; the second instance cannot fit beside it
+docker compose run --rm -e APP_WORKER_ENABLED=false api --provision-tenant \
   --name=yourcompany --admin-email=you@hkwprince.com --admin-password='a-strong-password'
+docker compose start api           # ~6 min to healthy, see the boot-time section above
 ```
+
+`APP_WORKER_ENABLED=false` matters for a reason that has nothing to do with memory. Left on, the
+throwaway instance joins the `dispatchers` consumer group, can claim a chunk of recipients into
+`SENDING`, and then exits mid-flight when the CLI calls `System.exit`. `PendingReaper` recovers those
+rows after five minutes, so nothing is lost, but those sends stall meanwhile.
+
+The six minutes of downtime is free today, because with no tenants nobody can log in. **Once you have
+real tenants, treat this as a maintenance window and never run it while a campaign is dispatching.**
+
+> Do not reach for `--spring.main.web-application-type=none` to make the throwaway instance lighter.
+> `SecurityConfig` declares a `SecurityFilterChain` bean that needs `HttpSecurity`, which Spring Security
+> only provides in a servlet web context, so the context fails to start. Stopping the live container is
+> the cheaper and safer way to get the same headroom.
 
 Open `https://letthemknow.hkwprince.com`, sign in, and configure SMTP under **Channels**. The settings are
 only saved if the test email actually arrives, so a green save means email genuinely works.
