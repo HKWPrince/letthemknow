@@ -10,7 +10,7 @@
 #   NOTE  information, not a problem
 
 APP_DIR=${APP_DIR:-/opt/letthemknow}
-DEPLOY_KEY_FP="SHA256:FnsotlvGdEvFc2bTBKgxhDAGLZdPCXVc4edlaIPWjlI"   # the github-actions deploy key
+DEPLOY_KEY_FP="SHA256:FnsotlvGdEvFc2bTBKgxhDAGLZdPCXVc4edlaIPWjlI"   # the Actions deploy key
 META=http://169.254.169.254/computeMetadata/v1
 MH='Metadata-Flavor: Google'
 
@@ -61,9 +61,18 @@ fi
 # ---------------------------------------------------------------- deploy key
 head_ "GitHub Actions deploy key"
 if [ -f ~/.ssh/authorized_keys ] && ssh-keygen -lf ~/.ssh/authorized_keys 2>/dev/null | grep -q "$DEPLOY_KEY_FP"; then
-  ok "github-actions key authorised for $(whoami)"
+  ok "deploy key authorised for $(whoami)"
+  # A key the guest agent manages is one it will also restore. A hand-appended key is one it deletes,
+  # so report where this key actually came from rather than just that it is present today.
+  if { curl -sf -m 3 -H "$MH" "$META/instance/attributes/ssh-keys" 2>/dev/null;
+       curl -sf -m 3 -H "$MH" "$META/project/attributes/ssh-keys" 2>/dev/null; } \
+       | grep -q "$(awk '{print $2}' ~/.ssh/authorized_keys | head -1)"; then
+    ok "and it comes from instance/project metadata, so the guest agent will keep it"
+  else
+    fail "but it is NOT in metadata: the guest agent can delete this file (it already did once). Add the key under Compute Engine -> VM -> Edit -> SSH Keys (runbook step 3)"
+  fi
 else
-  fail "github-actions key NOT in ~/.ssh/authorized_keys for $(whoami): the Deploy workflow cannot log in (runbook step 3)"
+  fail "deploy key NOT in ~/.ssh/authorized_keys for $(whoami): the Deploy workflow cannot log in (runbook step 3)"
 fi
 AK=$(stat -c '%a' ~/.ssh/authorized_keys 2>/dev/null)
 [ -n "$AK" ] && { [ "$AK" = 600 ] && ok "authorized_keys mode 600" || fail "authorized_keys mode $AK, sshd wants 600"; }

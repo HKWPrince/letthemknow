@@ -161,20 +161,39 @@ that is compromised cannot push a poisoned image back to your registry.
 
 ## 3. Give GitHub Actions a way in
 
-On your **laptop**, make a deploy key pair (no passphrase, since a workflow cannot type one):
+On your **laptop**, make a deploy key pair (no passphrase, since a workflow cannot type one). The
+comment at the end **must be the Linux username you want the key to belong to**, because Compute
+Engine parses the username out of that comment:
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/letthemknow_deploy -C "github-actions" -N ""
-cat ~/.ssh/letthemknow_deploy.pub    # public half
-cat ~/.ssh/letthemknow_deploy        # private half
+ssh-keygen -t ed25519 -f ~/.ssh/letthemknow_deploy -C "prince880211" -N ""
+cat ~/.ssh/letthemknow_deploy.pub    # public half, goes in metadata below
+cat ~/.ssh/letthemknow_deploy        # private half, goes in the VM_SSH_KEY secret
 ```
 
-On the **VM**, authorise the public half:
+> ### Do not append the key to `~/.ssh/authorized_keys`
+>
+> It appears to work, then breaks days later, and the failure looks like a rejected credential rather
+> than a deleted one. Google's documentation is explicit: *"Public SSH keys that you add directly to a
+> VM's `~/.ssh/authorized_keys` files might be overwritten by the VM's guest agent."* Worse, *"if you
+> manually added SSH keys to your VM and then connected to your VM using the Google Cloud console,
+> Compute Engine created a new key pair for your connection. After the new key pair expired, Compute
+> Engine deleted your `~/.ssh/authorized_keys` file"* — taking your deploy key with it.
+>
+> Using the browser SSH button, which this runbook tells you to do, is therefore enough to arm that
+> deletion. **This happened to this deployment**: the key worked, then Actions failed the next day with
+> `unable to authenticate, attempted methods [none publickey]`.
+
+Add the public half to **instance metadata** instead, which the guest agent maintains for you and which
+survives reboots and console logins. In the GCP console: **Compute Engine → VM instances →
+`letthemknow` → Edit → SSH Keys → Add item**, then paste the entire contents of
+`letthemknow_deploy.pub` and save. The username shown beside it must read `prince880211`; if it shows
+something else, the comment on the key is wrong, so fix the comment and re-paste.
+
+Verify from your laptop before moving on, since every later step depends on it:
 
 ```bash
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL1bBXkx7kD8Qudq5OivYN8zXevCSzWsWyHKXF6EQd9s github-actions' >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
+ssh -i ~/.ssh/letthemknow_deploy prince880211@<VM_HOST> 'echo ok'
 ```
 
 In the repo, **Settings → Secrets and variables → Actions**:
@@ -373,7 +392,8 @@ free -h                               # is swap being eaten
 | `denied` or `unauthorized` on pull | The GHCR login expired, was never done, or used a fine-grained token | Redo `docker login ghcr.io` from step 2 with a **classic** token |
 | Site shows a Cloudflare 502 | The tunnel is up but the service behind it is not | `docker compose logs cloudflared`, then check `web`/`api` are healthy |
 | Tunnel shows **Down** under Networking → Tunnels | `cloudflared` cannot start, usually a bad token | `docker compose logs cloudflared`, re-copy the token into `.env`, `docker compose up -d cloudflared` |
-| Deploy workflow fails at the SSH step | Key or host wrong | Test from your laptop: `ssh -i ~/.ssh/letthemknow_deploy USER@VM_HOST` |
+| Deploy workflow fails at the SSH step with `attempted methods [none publickey]` | The guest agent deleted `~/.ssh/authorized_keys`, usually after a console SSH session's temporary key expired | Add the key to **instance metadata**, not `authorized_keys`. See the warning in step 3. Test with `ssh -i ~/.ssh/letthemknow_deploy USER@VM_HOST` |
+| Site returns Cloudflare **error 1033** / HTTP 530 | The tunnel has no connection: `cloudflared` is not running, so the origin is unreachable | `docker compose ps`; if containers are down, `docker compose up -d`. DNS is fine, the origin is not |
 | Login works but campaigns never send | Workers disabled | `APP_WORKER_ENABLED=true` in `.env`, then `docker compose up -d api` |
 
 ### Backups
