@@ -45,6 +45,10 @@ web/.vite/
 web/*.tsbuildinfo
 .pnpm-store/
 
+# Generated copy of the root PRD.html, written by web's prebuild step. The root file is the
+# single source of truth; committing both invites them to drift apart.
+web/public/PRD.html
+
 # Test / build output
 web/test-results/
 web/playwright-report/

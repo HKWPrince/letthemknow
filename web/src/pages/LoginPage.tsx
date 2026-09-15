@@ -40,7 +40,7 @@ export function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gcp-ground px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gcp-ground px-4">
       <form onSubmit={submit} className="gcp-card w-full max-w-[420px] px-10 py-9" noValidate>
         <LogoMark size={40} className="mb-4" />
         <h1 className="text-2xl font-normal text-gcp-text">Sign in</h1>
@@ -74,6 +74,22 @@ export function LoginPage() {
           <Button type="submit" loading={busy}>Sign in</Button>
         </div>
       </form>
+
+      {/*
+        Sits outside the card and below it, so someone evaluating the product can find the spec
+        without it competing with sign-in. A plain anchor, not a router Link: PRD.html is a static
+        file served by nginx, and react-router would try to resolve it as an app route.
+      */}
+      <p className="text-xs text-gcp-text3">
+        <a
+          href="/PRD.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-sm text-gcp-text2 underline-offset-2 hover:text-gcp-blue hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gcp-blue"
+        >
+          產品說明文件
+        </a>
+      </p>
     </main>
   );
 }
