@@ -40,6 +40,19 @@ jobs:
       - name: Install
         working-directory: web
         run: pnpm install --frozen-lockfile
+
+      # web/public/PRD.html has to be committed because the image is built with ./web as its context,
+      # so the root copy is invisible to Docker. Two copies can drift, and a stale one would be served
+      # silently, so fail here instead: edit PRD.html, run pnpm build, commit both.
+      - name: PRD copy is in sync with the source
+        run: |
+          if ! diff -q PRD.html web/public/PRD.html >/dev/null; then
+            echo "::error::web/public/PRD.html differs from PRD.html. Run 'pnpm build' in web/ and commit both."
+            diff --unified=1 PRD.html web/public/PRD.html | head -20
+            exit 1
+          fi
+          echo "PRD.html and web/public/PRD.html are identical"
+
       - name: Build
         working-directory: web
         run: pnpm build

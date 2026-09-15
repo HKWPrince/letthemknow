@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "node -e \"require('fs').copyFileSync('../PRD.html','public/PRD.html')\"",
+    "prebuild": "node -e \"const fs=require('fs');const s='../PRD.html';if(fs.existsSync(s)){fs.copyFileSync(s,'public/PRD.html');console.log('PRD.html refreshed from source')}else{console.log('PRD.html: using the committed copy in public/')}\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "tsc -b --noEmit",
